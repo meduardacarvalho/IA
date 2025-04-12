@@ -1,0 +1,82 @@
+import time
+import copy
+
+class EightPuzzle:
+    def __init__(self, board, goal=None):
+        self.board = board
+        self.empty = self.locate_empty()
+        self.goal = goal if goal else [[1,2,3],[4,8,5],[7,0,6]]
+
+    def locate_empty(self):
+        for i in range(3):
+            for j in range(3):
+                if self.board[i][j] == 0:
+                    return (i, j)
+
+    def is_solved(self):
+        return self.board == self.goal
+
+    def clone_and_move(self, dx, dy):
+        x,y = self.empty
+        nx,ny = x+dx, y+dy
+        if 0<=nx<3 and 0<=ny<3:
+            new_board = copy.deepcopy(self.board)
+            new_board[x][y], new_board[nx][ny] = new_board[nx][ny], new_board[x][y]
+            return EightPuzzle(new_board, self.goal)
+
+    def expand_moves(self):
+        moves = []
+        for dx,dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+            child = self.clone_and_move(dx,dy)
+            if child:
+                moves.append(child)
+        return moves
+
+    def display(self):
+        for row in self.board:
+            print(*row)
+        print()
+
+visited = 0
+
+def depth_limited(p, depth):
+    global visited
+    visited += 1
+    if p.is_solved():
+        return True
+    if depth == 0:
+        return False
+    for c in p.expand_moves():
+        if depth_limited(c, depth-1):
+            return True
+    return False
+
+def iddfs(p):
+    d = 0
+    while True:
+        if depth_limited(p, d):
+            return d
+        d += 1
+
+def solve(board):
+    global visited
+    visited = 0
+    p = EightPuzzle(board)
+    print("Início:")
+    p.display()
+    t0 = time.time()
+    depth = iddfs(p)
+    t1 = time.time()
+    print("Profundidade:", depth)
+    print("Tempo:", round(t1-t0,4))
+    print("Nós visitados:", visited)
+
+def main():
+    while True:
+        board = [list(map(int,input().split())) for _ in range(3)]
+        solve(board)
+        if input().lower()!='s':
+            break
+
+if __name__=="__main__":
+    main()
